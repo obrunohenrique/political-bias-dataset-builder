@@ -11,15 +11,39 @@ from datetime import datetime
 # CONFIG DOS PORTAIS
 # =========================
 
+# PORTAIS = [
+#     {
+#         "nome": "g1",
+#         "url": "https://g1.globo.com/politica/",
+#         "botao": "Mostrar mais",
+#         "dominio": "g1.globo.com",
+#         "tipo": "scroll",
+#         "max_iter": 50,
+#         "seletor": "a[href]"
+#     }
+# ]
+
 PORTAIS = [
+
     {
-        "nome": "g1",
-        "url": "https://g1.globo.com/politica/",
-        "botao": "Mostrar mais",
-        "dominio": "g1.globo.com",
+        "nome": "valoreconomico",
+        "url": "https://valor.globo.com/politica/",
+        "botao": "Veja mais",
+        "dominio": "valor.globo.com",
         "tipo": "scroll",
-        "max_iter": 50,
+        "max_iter": 60,
         "seletor": "a[href]"
+    },
+
+    {
+        "nome": "Poder360",
+        "url": "https://www.poder360.com.br/poder-governo/",
+        "botao": "Carregar Mais",
+        "dominio": "poder360.com.br",
+        "tipo": "scroll",
+        "max_iter": 150,
+        "seletor": "a[href]",
+        "subtitulo_selector": "h2"
     }
 ]
 
