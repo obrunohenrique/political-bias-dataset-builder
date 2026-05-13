@@ -76,12 +76,12 @@ def executar_pipeline_incremental(nome_portal, alinhamento_portal):
 
     # 6. VERIFICAÇÃO DE META PARA ROTULAGEM DE VIÉS
     total_para_vies = len(df_consolidado)
-    if total_para_vies < 500:
-        print(f"⚠️  Volume atual ({total_para_vies}/500). Continue o scraping para liberar a rotulagem.")
+    if total_para_vies < 10:
+        print(f"⚠️  Volume atual ({total_para_vies}/10). Continue o scraping para liberar a rotulagem.")
         return
 
     # 7. ROTULAGEM DE VIÉS (LLM JUDGE)
-    print(f"\n⚖️ Meta de 500 atingida! Iniciando rotulagem de viés...")
+    print(f"\n⚖️ Meta de 10 atingida! Iniciando rotulagem de viés...")
     # Rodamos a rotulagem no dataframe consolidado
     df_labeled = rotular_vies(df_consolidado, alinhamento_portal)
     

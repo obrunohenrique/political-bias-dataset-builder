@@ -147,17 +147,23 @@ def extract_portal(config):
 
     print(f"Finalizado: {len(df)} matérias salvas em {nome_arquivo}")
 
-config_gazetadopovo = {
-    "nome": "gazetadopovo",
-    # A estrutura correta da paginação de editoriais na Gazeta
-    "base_url": "https://www.gazetadopovo.com.br/opiniao/editoriais/{}/",
-    "dominio": "gazetadopovo.com.br",
-    # Removi padrões rígidos para capturar tudo o que for link interno
-    "include_patterns": None, 
-    "exclude_patterns": ["/pagina/", "facebook", "twitter", "whatsapp", "linkedin"],
-    "paginas": 1, # Comece com poucas para testar
-    "min_slashes": 2 # Como os links podem ser relativos, deixamos baixo
-}
+# Configuração para Agência Brasil e Incisivos
+portais_paginacao = [
+    {
+        "nome": "agenciabrasil",
+        "base_url": "https://agenciabrasil.ebc.com.br/politica?page={}",
+        "dominio": "agenciabrasil.ebc.com.br",
+        "paginas": 5, # Aumente para pegar mais notícias
+        "min_slashes": 2
+    },
+    {
+        "nome": "incisivos",
+        "base_url": "https://incisivos.com.br/category/politica/page/{}/",
+        "dominio": "incisivos.com.br",
+        "paginas": 3,
+        "min_slashes": 2
+    }
+]
 
-
-extract_portal(config_gazetadopovo)
+for config in portais_paginacao:
+    extract_portal(config)
