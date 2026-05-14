@@ -159,5 +159,26 @@ config_gazetadopovo = {
     "min_slashes": 2 # Como os links podem ser relativos, deixamos baixo
 }
 
+config_intercept = {
+    "nome": "InterceptBrasil",
+    "base_url": "https://www.intercept.com.br/poder/page/{}/",
+    "dominio": "intercept.com.br",
+    "include_patterns": ["/20"],
+    "exclude_patterns": ["page", "#"],
+    "paginas": 2
+}
 
-extract_portal(config_gazetadopovo)
+config_sul21 = {
+    "nome": "Sul21",
+    "base_url": "https://sul21.com.br/assunto/politica/page/{}/",
+    "dominio": "sul21.com.br",
+    "include_patterns": ["/20"],
+    "exclude_patterns": ["assunto", "page"],
+    "paginas": 120
+}
+
+#extract_portal(config_intercept)
+extract_portal(config_sul21)
+
+
+#extract_portal(config_gazetadopovo)

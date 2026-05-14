@@ -55,8 +55,11 @@ CONTEXTO DO VEÍCULO: {contexto_editorial}
 - DIREITA: Foco em liberdade econômica, valores conservadores, críticas ao 'estatismo' ou ao judiciário.
 
 ### EXEMPLOS DE "PULO DO GATO":
-- Texto: "Irmão de Ministro é militante de esquerda" -> Rótulo: DIREITA (Uso de fato pessoal para questionar a imparcialidade de uma autoridade).
-- Texto: "Bancos lucram bilhões enquanto fome cresce" -> Rótulo: ESQUERDA (Associação de lucro privado à desigualdade social).
+1. "Irmão de Ministro é militante de esquerda" -> Rótulo: DIREITA (Justificativa: Usa conexões familiares para questionar a imparcialidade de uma autoridade).
+2. "Bancos lucram bilhões enquanto fome cresce" -> Rótulo: ESQUERDA (Justificativa: Cria um antagonismo moral entre o lucro privado e a desigualdade social).
+3. "Senado aprova projeto que altera regras do Imposto de Renda e segue para sanção" -> Rótulo: NEUTRO (Justificativa: Texto estritamente descritivo de um rito administrativo/legislativo, sem adjetivação ou juízo de valor).
+4. "Especialistas criticam 'ativismo judicial' em nova decisão do STF" -> Rótulo: DIREITA (Justificativa: Utiliza termos como 'ativismo judicial' para deslegitimar decisões técnicas sob uma ótica conservadora).
+5. "Entidades denunciam negligência ambiental em novo projeto de infraestrutura" -> Rótulo: ESQUERDA (Justificativa: Prioriza a pauta de preservação e direitos coletivos em oposição ao desenvolvimento econômico).
 
 CONTEÚDO:
 Título: {titulo}
