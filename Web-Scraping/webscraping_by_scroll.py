@@ -24,26 +24,23 @@ from datetime import datetime
 # ]
 
 PORTAIS = [
-
     {
-        "nome": "valoreconomico",
-        "url": "https://valor.globo.com/politica/",
-        "botao": "Veja mais",
-        "dominio": "valor.globo.com",
+        "nome": "folha",
+        "url": "https://www1.folha.uol.com.br/poder/",
+        "botao": "VER MAIS",
+        "dominio": "folha.uol.com.br",
         "tipo": "scroll",
-        "max_iter": 60,
+        "max_iter": 100,
         "seletor": "a[href]"
     },
-
     {
-        "nome": "Poder360",
-        "url": "https://www.poder360.com.br/poder-governo/",
-        "botao": "Carregar Mais",
-        "dominio": "poder360.com.br",
+        "nome": "uol_politica",
+        "url": "https://noticias.uol.com.br/politica/",
+        "botao": "Ver mais",
+        "dominio": "noticias.uol.com.br",
         "tipo": "scroll",
-        "max_iter": 150,
-        "seletor": "a[href]",
-        "subtitulo_selector": "h2"
+        "max_iter": 100,
+        "seletor": "a[href]"
     }
 ]
 

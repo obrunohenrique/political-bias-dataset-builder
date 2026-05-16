@@ -16,12 +16,17 @@ LISTA_PORTAIS = [
     {
         "nome": "revistaoeste", 
         "sitemap_url": "https://revistaoeste.com/sitemap.xml",
-        "filtro_url": "" # Deixe vazio "" se quiser pegar tudo
+        "filtro_url": ""
+    },
+    {
+        "nome": "jornaldacidade", 
+        "sitemap_url": "https://www.jornaldacidadeonline.com.br/sitemap.xml",
+        "filtro_url": ""
     }
 ]
 
 # Quantidade máxima de matérias por portal (para não estourar o tempo)
-LIMITE_MATERIAS = 500 
+LIMITE_MATERIAS = 1000 
 
 # ==========================================
 # 2. PREPARAÇÃO DO AMBIENTE
