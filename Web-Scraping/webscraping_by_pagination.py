@@ -147,38 +147,25 @@ def extract_portal(config):
 
     print(f"Finalizado: {len(df)} matérias salvas em {nome_arquivo}")
 
-config_gazetadopovo = {
-    "nome": "gazetadopovo",
-    # A estrutura correta da paginação de editoriais na Gazeta
-    "base_url": "https://www.gazetadopovo.com.br/opiniao/editoriais/{}/",
-    "dominio": "gazetadopovo.com.br",
-    # Removi padrões rígidos para capturar tudo o que for link interno
-    "include_patterns": None, 
-    "exclude_patterns": ["/pagina/", "facebook", "twitter", "whatsapp", "linkedin"],
-    "paginas": 1, # Comece com poucas para testar
-    "min_slashes": 2 # Como os links podem ser relativos, deixamos baixo
+config_cartacapital = {
+    "nome": "cartacapital",
+    "base_url": "https://www.cartacapital.com.br/politica/page/{}/",
+    "dominio": "cartacapital.com.br",
+    "include_patterns": None,
+    "exclude_patterns": ["/author/", "/tag/", "facebook", "twitter"],
+    "paginas": 100,
+    "min_slashes": 3
 }
 
-config_intercept = {
-    "nome": "InterceptBrasil",
-    "base_url": "https://www.intercept.com.br/poder/page/{}/",
-    "dominio": "intercept.com.br",
-    "include_patterns": ["/20"],
-    "exclude_patterns": ["page", "#"],
-    "paginas": 2
+config_operamundi = {
+    "nome": "operamundi",
+    "base_url": "https://operamundi.uol.com.br/politica/page/{}/",
+    "dominio": "operamundi.uol.com.br",
+    "include_patterns": None,
+    "exclude_patterns": ["/author/", "/tag/", "facebook", "twitter"],
+    "paginas": 100,
+    "min_slashes": 3
 }
 
-config_sul21 = {
-    "nome": "Sul21",
-    "base_url": "https://sul21.com.br/assunto/politica/page/{}/",
-    "dominio": "sul21.com.br",
-    "include_patterns": ["/20"],
-    "exclude_patterns": ["assunto", "page"],
-    "paginas": 120
-}
-
-#extract_portal(config_intercept)
-extract_portal(config_sul21)
-
-
-#extract_portal(config_gazetadopovo)
+extract_portal(config_cartacapital)
+extract_portal(config_operamundi)
