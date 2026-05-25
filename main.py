@@ -27,52 +27,63 @@ def executar_pipeline_incremental(nome_portal, alinhamento_portal):
     print(f"🎯 CONTEXTO: {alinhamento_portal.upper()}")
     print(f"{'='*50}\n")
     
-    # 1. CONSOLIDAR DADOS BRUTOS DA PASTA RAW
-    df_raw = consolidar_novos_dados(nome_portal)
-    if df_raw is None or df_raw.empty:
-        print("☕ Nada novo na pasta 'data/raw' para processar.")
-        return
-
-    # 2. FILTRAGEM ANTI-DUPLICIDADE POR TÍTULO (Antes de chamar a IA)
     path_proc = f"data/processed/{nome_portal}.csv"
-    df_antigo = pd.DataFrame()
+    df_consolidado = None
     
-    if os.path.exists(path_proc):
-        df_antigo = pd.read_csv(path_proc)
-        # Identifica o que é realmente inédito comparando os TÍTULOS
-        titulos_ja_processados = df_antigo['titulo'].unique()
-        df_realmente_novos = df_raw[~df_raw['titulo'].isin(titulos_ja_processados)].copy()
+    # 1. TENTAR CONSOLIDAR DADOS BRUTOS DA PASTA RAW
+    df_raw = consolidar_novos_dados(nome_portal)
+    
+    # --- FLUXO A: EXISTEM ARQUIVOS NOVOS NA PASTA RAW ---
+    if df_raw is not None and not df_raw.empty:
+        print(f"📂 Novos arquivos encontrados na pasta 'data/raw'. Iniciando processamento...")
         
-        if df_realmente_novos.empty:
-            print("✅ Todas as notícias capturadas já existem no banco processado (validação por título). Pulando IA...")
-            arquivar_raw(nome_portal)
-            return
+        # Carrega a base processada antiga (se houver) para checar duplicidade
+        df_antigo = pd.read_csv(path_proc) if os.path.exists(path_proc) else pd.DataFrame()
+        
+        # 2. FILTRAGEM ANTI-DUPLICIDADE POR TÍTULO
+        if not df_antigo.empty:
+            titulos_ja_processados = df_antigo['titulo'].unique()
+            df_realmente_novos = df_raw[~df_raw['titulo'].isin(titulos_ja_processados)].copy()
+            
+            if df_realmente_novos.empty:
+                print("✅ Todas as notícias capturadas já existem no banco processado. Pulando Noise Killer...")
+                arquivar_raw(nome_portal)
+                df_consolidado = df_antigo
+        else:
+            df_realmente_novos = df_raw.copy()
+
+        # Se existem dados inéditos, passa pelo Noise Killer
+        if df_consolidado is None:
+            print(f"🆕 Instâncias inéditas encontradas: {len(df_realmente_novos)}")
+
+            # 3. FILTRAR RUÍDO (Apenas nas instâncias novas)
+            print(f"🧠 Llama 3.1 filtrando relevância (Noise Killer)...")
+            df_novos_limpos = remover_ruido(df_realmente_novos)
+
+            if df_novos_limpos.empty:
+                print("❌ Nenhuma das novas matérias passou no filtro de relevância política.")
+                arquivar_raw(nome_portal)
+                if not df_antigo.empty:
+                    df_consolidado = df_antigo
+                else:
+                    return
+            else:
+                # 4. UNIÃO E SALVAMENTO (data/processed)
+                df_consolidado = pd.concat([df_antigo, df_novos_limpos], ignore_index=True)
+                df_consolidado = df_consolidado.drop_duplicates(subset=['titulo'], keep='first')
+                df_consolidado.to_csv(path_proc, index=False)
+                print(f"💾 Base processada atualizada! Total acumulado: {len(df_consolidado)} linhas.")
+                arquivar_raw(nome_portal)
+                
+    # --- FLUXO B: PASTA RAW VAZIA (O Cenário Solicitado) ---
     else:
-        df_realmente_novos = df_raw.copy()
-
-    print(f"🆕 Instâncias inéditas encontradas: {len(df_realmente_novos)}")
-
-    # 3. FILTRAR RUÍDO (Apenas nas instâncias novas)
-    print(f"🧠 Llama 3.1 filtrando relevância (Noise Killer)...")
-    df_novos_limpos = remover_ruido(df_realmente_novos)
-
-    if df_novos_limpos.empty:
-        print("❌ Nenhuma das novas matérias passou no filtro de relevância política.")
-        arquivar_raw(nome_portal)
-        return
-
-    # 4. UNIÃO E SALVAMENTO (data/processed)
-    # Concatenamos o histórico com as novas matérias limpas
-    df_consolidado = pd.concat([df_antigo, df_novos_limpos], ignore_index=True)
-    
-    # Garantia final contra duplicatas por TÍTULO
-    df_consolidado = df_consolidado.drop_duplicates(subset=['titulo'], keep='first')
-    
-    df_consolidado.to_csv(path_proc, index=False)
-    print(f"💾 Base processada atualizada! Total acumulado: {len(df_consolidado)} linhas.")
-
-    # 5. LIMPEZA DE ARQUIVOS
-    arquivar_raw(nome_portal)
+        print("☕ Nada novo na pasta 'data/raw'. Verificando histórico em 'data/processed'...")
+        if os.path.exists(path_proc):
+            df_consolidado = pd.read_csv(path_proc)
+            print(f"📂 Base 'processed' encontrada com {len(df_consolidado)} linhas. Avançando DIRETO para a rotulagem de viés (sem filtro de ruído)...")
+        else:
+            print(f"❌ Erro: Nenhum dado encontrado na pasta 'data/raw' e nenhuma base histórica em '{path_proc}'.")
+            return
 
     # 6. VERIFICAÇÃO DE META PARA ROTULAGEM DE VIÉS
     total_para_vies = len(df_consolidado)
@@ -82,7 +93,6 @@ def executar_pipeline_incremental(nome_portal, alinhamento_portal):
 
     # 7. ROTULAGEM DE VIÉS (LLM JUDGE)
     print(f"\n⚖️ Meta de 500 atingida! Iniciando rotulagem de viés...")
-    # Rodamos a rotulagem no dataframe consolidado
     df_labeled = rotular_vies(df_consolidado, alinhamento_portal)
     
     path_labeled = f"data/labeled/{nome_portal}_labeled.csv"
@@ -109,3 +119,4 @@ if __name__ == "__main__":
         print("❌ Opção de alinhamento inválida. Abortando.")
     else:
         executar_pipeline_incremental(portal_input, alinhamento_input)
+        
