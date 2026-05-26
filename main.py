@@ -87,12 +87,12 @@ def executar_pipeline_incremental(nome_portal, alinhamento_portal):
 
     # 6. VERIFICAÇÃO DE META PARA ROTULAGEM DE VIÉS
     total_para_vies = len(df_consolidado)
-    if total_para_vies < 500:
+    if total_para_vies < 1:
         print(f"⚠️  Volume atual ({total_para_vies}/500). Continue o scraping para liberar a rotulagem.")
         return
 
     # 7. ROTULAGEM DE VIÉS (LLM JUDGE)
-    print(f"\n⚖️ Meta de 500 atingida! Iniciando rotulagem de viés...")
+    print(f"\n⚖️ Meta de 1 atingida! Iniciando rotulagem de viés...")
     df_labeled = rotular_vies(df_consolidado, alinhamento_portal)
     
     path_labeled = f"data/labeled/{nome_portal}_labeled.csv"
@@ -103,20 +103,38 @@ def executar_pipeline_incremental(nome_portal, alinhamento_portal):
     print(f"📊 Distribuição de rótulos:\n{df_labeled['vies_politico'].value_counts()}")
 
 if __name__ == "__main__":
-    # Interface via terminal
-    portal_input = input("Qual portal processar (ex: gazetadopovo)? ").strip().lower()
+    import os
     
-    print("\nEscolha o alinhamento editorial do portal:")
-    print("1. Direita")
-    print("2. Esquerda")
-    print("3. Neutro")
-    opcao = input("Opção (1/2/3): ").strip()
+    # 1. Lista todos os portais baseando-se nos arquivos em 'data/processed'
+    path_proc = "data/processed"
+    portais = [f.replace(".csv", "") for f in os.listdir(path_proc) if f.endswith(".csv")]
     
-    mapa_alinhamento = {"1": "direita", "2": "esquerda", "3": "neutro"}
-    alinhamento_input = mapa_alinhamento.get(opcao)
+    print(f"✅ Encontrados {len(portais)} portais para processar: {', '.join(portais)}")
 
-    if not alinhamento_input:
-        print("❌ Opção de alinhamento inválida. Abortando.")
-    else:
-        executar_pipeline_incremental(portal_input, alinhamento_input)
+    # 2. Defina aqui o mapeamento de alinhamento para cada um
+    # Se um portal não estiver aqui, o script perguntará manualmente ou você pode definir um padrão
+    mapa_alinhamentos = {
+        "agenciabrasil": "neutro",
+        "estadao": "neutro",
+        "jornalggn": "esquerda",
+        "jovempan": "direita",
+        "revistaforum": "esquerda",
+        "brasil247": "esquerda",
+        "gazetadopovo": "direita",
+        "oantagonista": "direita",
+        "poder360": "neutro",
+        "sul21": "esquerda",
+        "valoreconomico": "neutro",
+        "g1": "neutro",
+        "cnnbrasil": "neutro"
+    }
+
+    for nome_portal in portais:
+        # Pega o alinhamento do mapa ou assume 'neutro' caso não encontre
+        alinhamento = mapa_alinhamentos.get(nome_portal, "neutro")
         
+        try:
+            executar_pipeline_incremental(nome_portal, alinhamento)
+        except Exception as e:
+            print(f"❌ Erro ao processar {nome_portal}: {e}")
+            continue

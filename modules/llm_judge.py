@@ -6,6 +6,9 @@ import re
 def rotular_vies(df, alinhamento_portal):
     tqdm.pandas(desc=f"⚖️ Juiz de Viés ({alinhamento_portal})")
     
+    # 1. FILTRO DE LIMPEZA GERAL: Remove linhas sem título ou texto para não engasgar o LLM
+    df = df.dropna(subset=['titulo', 'texto']).reset_index(drop=True)
+    
     def extrair_informacoes(texto_bruto):
         texto_limpo = texto_bruto.strip()
         justificativa = "Não identificada."
@@ -27,10 +30,14 @@ def rotular_vies(df, alinhamento_portal):
         return rotulo, justificativa
 
     def classificar(row):
-        titulo = str(row['titulo']) if pd.notna(row['titulo']) else ""
-        subtitulo = str(row['subtitulo']) if pd.notna(row['subtitulo']) else ""
-        texto_limpo = str(row['texto']).replace('\n', ' ')[:1000] if pd.notna(row['texto']) else ""
+        titulo = str(row['titulo']).strip() if pd.notna(row['titulo']) else ""
+        subtitulo = str(row['subtitulo']).strip() if pd.notna(row['subtitulo']) else ""
+        texto_limpo = str(row['texto']).replace('\n', ' ').strip()[:1000] if pd.notna(row['texto']) else ""
         
+        # 2. TRAVA DE SEGURANÇA: Se após a limpeza o texto estiver vazio, pula a linha
+        if not titulo and not texto_limpo:
+             return pd.Series(["ERRO_DADO_VAZIO", "A notícia não possuía texto válido."], index=['vies_politico', 'justificativa_llm'])
+
         # Lógica de Contexto Editorial
         contexto_editorial = ""
         if alinhamento_portal == "direita":
@@ -77,7 +84,6 @@ Use este guia para identificar como os campos políticos reconfiguram os mesmos 
    - Narrativa de ESQUERDA: Associa o escândalo financeiro e as fraudes de Daniel Vorcaro à gestão anterior do Banco Central sob Roberto Campos Neto (alegando omissão na fiscalização), destaca as ligações do ex-banqueiro com políticos da extrema-direita e do Centrão, além de citar o financiamento milionário de Vorcaro a uma cinebiografia da família Bolsonaro.
    - Narrativa de DIREITA: Explora as conexões do ex-banqueiro com o atual governo, apontando reuniões fora da agenda oficial com o presidente Lula, consultorias pagas a ex-ministros petistas e contratos com escritórios de advocacia ligados a ministros do STF. Enquadra o caso como uma prova de corrupção sistêmica que respinga diretamente na cúpula do poder governista e do Judiciário.
 
-
 ### EXEMPLOS DE "PULO DO GATO":
 1. "Irmão de Ministro é militante de esquerda" -> Rótulo: DIREITA (Justificativa: Usa conexões familiares para questionar a imparcialidade de uma autoridade).
 2. "Senado aprova projeto que altera regras do Imposto de Renda e segue para sanção" -> Rótulo: NEUTRO (Justificativa: Texto estritamente descritivo de um rito administrativo/legislativo, sem adjetivação ou juízo de valor).
@@ -97,14 +103,23 @@ ROTULO: [ESQUERDA, DIREITA ou NEUTRO]
 """
         
         try:
+            # 3. O RASTREADOR: Vai imprimir a notícia exata que está sendo avaliada
+            # O final '\r' faz o print sobrepor a linha anterior para não poluir muito a tela
+            print(f" [OLLAMA] Lendo: {titulo[:60]}... \r", end="")
+            
             response = ollama.generate(model='llama3.1', prompt=prompt, options={
-                "num_ctx": 8192,      # Expande a memória do Ollama para 8k tokens
+                "num_ctx": 8192,
                 "temperature": 0.0
             })
             label, justification = extrair_informacoes(response['response'])
             return pd.Series([label, justification], index=['vies_politico', 'justificativa_llm'])
         except Exception as e:
+            print(f"\n[ERRO NA NOTÍCIA]: {titulo[:50]} | DETALHE: {e}")
             return pd.Series(["ERRO_CONEXAO", str(e)], index=['vies_politico', 'justificativa_llm'])
 
     df[['vies_politico', 'justificativa_llm']] = df.progress_apply(classificar, axis=1)
+    
+    # Limpa a linha do rastreador quando terminar
+    print("\n") 
+    
     return df
