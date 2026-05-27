@@ -167,5 +167,17 @@ config_operamundi = {
     "min_slashes": 3
 }
 
-extract_portal(config_cartacapital)
+config_conexaopolitica = {
+    "nome": "conexaopolitica",
+    # O {} será substituído pelo número da página no loop do seu script
+    "base_url": "https://www.conexaopolitica.com.br/category/politica/page/{}/",
+    "dominio": "conexaopolitica.com.br",
+    "include_patterns": None,
+    # Excluímos tags, categorias e autores para o crawler não se perder
+    "exclude_patterns": ["/tag/", "/category/", "/author/", "facebook.com", "twitter.com"],
+    "paginas": 150,  # Altere para a quantidade de páginas que você deseja minerar
+    "min_slashes": 4
+}
+
+extract_portal(config_conexaopolitica)
 extract_portal(config_operamundi)
