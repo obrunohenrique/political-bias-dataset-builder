@@ -153,7 +153,7 @@ config_cartacapital = {
     "dominio": "cartacapital.com.br",
     "include_patterns": None,
     "exclude_patterns": ["/author/", "/tag/", "facebook", "twitter"],
-    "paginas": 100,
+    "paginas": 10,
     "min_slashes": 3
 }
 

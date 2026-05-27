@@ -24,23 +24,33 @@ from datetime import datetime
 # ]
 
 PORTAIS = [
+    # {
+    #     "nome": "folha",
+    #     "url": "https://www1.folha.uol.com.br/poder/",
+    #     "botao": "VER MAIS",
+    #     "dominio": "folha.uol.com.br",
+    #     "tipo": "scroll",
+    #     "max_iter": 100,
+    #     "seletor": "a[href]"
+    # },
+    # {
+    #     "nome": "uol_politica",
+    #     "url": "https://noticias.uol.com.br/politica/",
+    #     "botao": "Ver mais",
+    #     "dominio": "noticias.uol.com.br",
+    #     "tipo": "scroll",
+    #     "max_iter": 100,
+    #     "seletor": "a[href]"
+    # },
     {
-        "nome": "folha",
-        "url": "https://www1.folha.uol.com.br/poder/",
-        "botao": "VER MAIS",
-        "dominio": "folha.uol.com.br",
+        "nome": "metropoles",
+        "url": "https://www.metropoles.com/brasil",
+        "botao": "VER MAIS NOTÍCIAS",
+        "dominio": "metropoles.com",
         "tipo": "scroll",
         "max_iter": 100,
-        "seletor": "a[href]"
-    },
-    {
-        "nome": "uol_politica",
-        "url": "https://noticias.uol.com.br/politica/",
-        "botao": "Ver mais",
-        "dominio": "noticias.uol.com.br",
-        "tipo": "scroll",
-        "max_iter": 100,
-        "seletor": "a[href]"
+        "seletor": "a[href]",
+        "subtitulo_selector": "meta[name='description']"
     }
 ]
 
@@ -287,7 +297,7 @@ async def extrair_artigos_async(links, nome_portal, config):
     df = pd.DataFrame(dados)
     df.drop_duplicates(subset="url", inplace=True)
 
-    nome_arquivo = f"{nome_portal}_{hoje}.csv"
+    nome_arquivo = f"data/raw/{nome_portal}_{hoje}.csv"
     df.to_csv(nome_arquivo, index=False)
 
     print(f"\n{nome_portal}: {len(df)} matérias salvas")
