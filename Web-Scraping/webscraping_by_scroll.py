@@ -24,22 +24,31 @@ from datetime import datetime
 # ]
 
 PORTAIS = [
+    # {
+    #     "nome": "folha",
+    #     "url": "https://www1.folha.uol.com.br/poder/",
+    #     "botao": "VER MAIS",
+    #     "dominio": "folha.uol.com.br",
+    #     "tipo": "scroll",
+    #     "max_iter": 100,
+    #     "seletor": "a[href]"
+    # },
+    # {
+    #     "nome": "uol_politica",
+    #     "url": "https://noticias.uol.com.br/politica/",
+    #     "botao": "Ver mais",
+    #     "dominio": "noticias.uol.com.br",
+    #     "tipo": "scroll",
+    #     "max_iter": 100,
+    #     "seletor": "a[href]"
+    # }
     {
-        "nome": "folha",
-        "url": "https://www1.folha.uol.com.br/poder/",
-        "botao": "VER MAIS",
-        "dominio": "folha.uol.com.br",
+        "nome": "valor_economico",
+        "url": "https://valor.globo.com/politica/",
+        "botao": "Veja mais",  # O Valor costuma carregar no scroll, mas usa "Veja mais" se travar.
+        "dominio": "valor.globo.com",
         "tipo": "scroll",
-        "max_iter": 100,
-        "seletor": "a[href]"
-    },
-    {
-        "nome": "uol_politica",
-        "url": "https://noticias.uol.com.br/politica/",
-        "botao": "Ver mais",
-        "dominio": "noticias.uol.com.br",
-        "tipo": "scroll",
-        "max_iter": 100,
+        "max_iter": 100,        # 50 iterações costumam ser suficientes, mas mude para 100 se quiser ir mais longe no histórico
         "seletor": "a[href]"
     }
 ]
@@ -232,7 +241,7 @@ async def extrair_artigos_async(links, nome_portal, config):
 
         for i, url in enumerate(links):
             try:
-                await page.goto(url, timeout=60000)
+                await page.goto(url, timeout=20000, wait_until="domcontentloaded")
 
                 # =========================
                 # SUBTÍTULO (tentativas)
