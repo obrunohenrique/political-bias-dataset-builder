@@ -1,23 +1,24 @@
+import os
 import pandas as pd
 from modules.sampler import gerar_amostra_unica_validacao
 
 # =====================================================================
-# CONFIGURAÇÕES DO PIPELINE DE VALIDAÇÃO
+# CONFIGURAÇÕES DO PIPELINE DE VALIDAÇÃO (AJUSTADO)
 # =====================================================================
-# Caminho do dataset gerado pelo llm_judge.py na pasta data/labeled/ [cite: 52, 66]
-df_labeled = pd.read_csv("./data/labeled/gazetadopovo_labeled.csv")
+PATH_TRAIN = os.path.join("data", "labeled", "final_dataset", "train.csv")
+PATH_OUTPUT = os.path.join("data", "labeled", "final_dataset")
 
-TAMANHO_ANCORAGEM = 3    # Quantidade de notícias idênticas para toda a equipe
-TAMANHO_INDIVIDUAL = 3  # Quantidade de notícias exclusivas por integrante
+# Definição do tamanho ideal das amostras por membro
+TAMANHO_ANCORAGEM = 30   # Notícias idênticas que TODOS os 5 vão responder
+TAMANHO_INDIVIDUAL = 60  # Notícias exclusivas que APENAS aquele membro vai responder
+
 MEMBROS_EQUIPE = ["bruno", "ariston", "mateus", "pedro", "thiago"]
 
 if __name__ == "__main__":
-    # Supondo que df_labeled seja o seu dataset vindo da pasta data/labeled/
-    # df_labeled = pd.read_csv("data/labeled/portal_labeled.csv")
+    print(f"🔄 Lendo o dataset de treino balanceado: {PATH_TRAIN}")
+    df_labeled = pd.read_csv(PATH_TRAIN)
     
-    equipe = ["bruno", "thiago", "membro3", "membro4", "membro5"]
-    
-    # Exemplo: 30 notícias de ancoragem (comuns) + 50 exclusivas para cada um
+    print("🎲 Gerando amostra mista (Ancoragem + Individuais)...")
     df_validacao = gerar_amostra_unica_validacao(
         df_labeled=df_labeled, 
         n_ancoragem=TAMANHO_ANCORAGEM, 
@@ -25,6 +26,11 @@ if __name__ == "__main__":
         lista_membros=MEMBROS_EQUIPE
     )
     
-    # Salva o arquivo único mestre
-    df_validacao.to_csv("data/validation/sampling_validation.csv", index=False)
-    print("Arquivo de validação única gerado com sucesso!")
+    # Salva o arquivo na mesma pasta do dataset final para organização
+    caminho_final_amostra = os.path.join(PATH_OUTPUT, "amostra_label_studio.csv")
+    df_validacao.to_csv(caminho_final_amostra, index=False)
+    
+    print(f"\n🎉 Arquivo único gerado com sucesso!")
+    print(f"📁 Salvo em: {caminho_final_amostra}")
+    print(f"📊 Total de linhas no arquivo de amostragem: {len(df_validacao)}")
+    
