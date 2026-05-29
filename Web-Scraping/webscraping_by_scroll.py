@@ -11,35 +11,32 @@ from datetime import datetime
 # CONFIG DOS PORTAIS
 # =========================
 
-# PORTAIS = [
-#     {
-#         "nome": "g1",
-#         "url": "https://g1.globo.com/politica/",
-#         "botao": "Mostrar mais",
-#         "dominio": "g1.globo.com",
-#         "tipo": "scroll",
-#         "max_iter": 50,
-#         "seletor": "a[href]"
-#     }
-# ]
-
 PORTAIS = [
+    # {
+    #     "nome": "folha",
+    #     "url": "https://www1.folha.uol.com.br/poder/",
+    #     "botao": "VER MAIS",
+    #     "dominio": "folha.uol.com.br",
+    #     "tipo": "scroll",
+    #     "max_iter": 100,
+    #     "seletor": "a[href]"
+    # },
+    # {
+    #     "nome": "uol_politica",
+    #     "url": "https://noticias.uol.com.br/politica/",
+    #     "botao": "Ver mais",
+    #     "dominio": "noticias.uol.com.br",
+    #     "tipo": "scroll",
+    #     "max_iter": 100,
+    #     "seletor": "a[href]"
+    # }
     {
-        "nome": "folha",
-        "url": "https://www1.folha.uol.com.br/poder/",
-        "botao": "VER MAIS",
-        "dominio": "folha.uol.com.br",
+        "nome": "valor_economico",
+        "url": "https://valor.globo.com/politica/",
+        "botao": "Veja mais",  # O Valor costuma carregar no scroll, mas usa "Veja mais" se travar.
+        "dominio": "valor.globo.com",
         "tipo": "scroll",
-        "max_iter": 100,
-        "seletor": "a[href]"
-    },
-    {
-        "nome": "uol_politica",
-        "url": "https://noticias.uol.com.br/politica/",
-        "botao": "Ver mais",
-        "dominio": "noticias.uol.com.br",
-        "tipo": "scroll",
-        "max_iter": 100,
+        "max_iter": 100,        # 50 iterações costumam ser suficientes, mas mude para 100 se quiser ir mais longe no histórico
         "seletor": "a[href]"
     }
 ]
@@ -114,6 +111,39 @@ async def coletar_scroll(config):
             if href.startswith("/"):
                 href = f"https://{config['dominio']}" + href
 
+            # ------------------------------------------------------------
+            # FILTRO BRASIL DE FATO: Remove links de menus e outras editorias
+            # ------------------------------------------------------------
+            if config["nome"] == "brasildefato" and "/editoria/" in href:
+                if href.strip("/") != config["url"].strip("/"):
+                    continue
+
+            # ------------------------------------------------------------
+            # FILTRO PLENO NEWS: Garante que só pegamos notícias reais de política
+            # ------------------------------------------------------------
+            if config["nome"] == "plenonews":
+                if "/brasil/politica-nacional" not in href:
+                    continue
+                
+                if href.strip("/") == config["url"].strip("/"):
+                    continue
+                
+                termos_invalidos = [
+                    "opiniao", "coluna", "autor", "comunicacao-vida-e-politica", 
+                    "teologia-viva", "direito-religioso", "cosmovisao-crista",
+                    "cafe-com-politica", "saude-alem-da-balanca", "cultura-e-lazer"
+                ]
+                if any(termo in href.lower() for termo in termos_invalidos):
+                    continue
+
+            # ------------------------------------------------------------
+            # FILTRO CONEXÃO POLÍTICA: Evita apenas a página mãe de listagem
+            # ------------------------------------------------------------
+            if config["nome"] == "conexaopolitica":
+                if href.strip("/") == config["url"].strip("/"):
+                    continue
+
+            # Validação padrão do script
             if is_artigo_valido(href, config["dominio"]):
                 links.add(href)
 
@@ -158,7 +188,6 @@ async def coletar_paginacao_click(config):
                 if href.startswith("/"):
                     href = f"https://{config['dominio']}" + href
 
-                # filtro específico
                 if config["nome"] == "OAntagonista":
                     if is_artigo_antagonista(href):
                         links.add(href)
@@ -168,7 +197,6 @@ async def coletar_paginacao_click(config):
 
             print(f"Total acumulado: {len(links)}")
 
-            # próxima página (clicando no número)
             proxima = str(pagina_atual + 1)
 
             try:
@@ -232,15 +260,10 @@ async def extrair_artigos_async(links, nome_portal, config):
 
         for i, url in enumerate(links):
             try:
-                await page.goto(url, timeout=60000)
-
-                # =========================
-                # SUBTÍTULO (tentativas)
-                # =========================
+                await page.goto(url, timeout=20000, wait_until="domcontentloaded")
 
                 subtitulo = None
 
-                # 1. meta description (mais confiável)
                 try:
                     subtitulo = await page.get_attribute(
                         "meta[name='description']", "content"
@@ -248,7 +271,6 @@ async def extrair_artigos_async(links, nome_portal, config):
                 except:
                     pass
 
-                # 2. seletor customizado do portal
                 if not subtitulo and config.get("subtitulo_selector"):
                     try:
                         el = await page.query_selector(config["subtitulo_selector"])
@@ -256,10 +278,6 @@ async def extrair_artigos_async(links, nome_portal, config):
                             subtitulo = await el.inner_text()
                     except:
                         pass
-
-                # =========================
-                # NEWSPAPER (texto + título)
-                # =========================
 
                 art = Article(url, language='pt')
                 art.download()
@@ -287,7 +305,7 @@ async def extrair_artigos_async(links, nome_portal, config):
     df = pd.DataFrame(dados)
     df.drop_duplicates(subset="url", inplace=True)
 
-    nome_arquivo = f"{nome_portal}_{hoje}.csv"
+    nome_arquivo = f"data/raw/{nome_portal}_{hoje}.csv"
     df.to_csv(nome_arquivo, index=False)
 
     print(f"\n{nome_portal}: {len(df)} matérias salvas")
